@@ -337,7 +337,9 @@ class Note extends BaseModel {
     debug('new note: ', newNote)
 
     // copy tag relations
-    if (newNote && newNote.id) { await Note_Tag.copyTagsFromAnotherNote(noteId, urlToId(newNote.id)) }
+    if (newNote && newNote.id) {
+      await Note_Tag.copyTagsFromAnotherNote(noteId, urlToId(newNote.id))
+    }
 
     return newNote
   }
@@ -387,7 +389,6 @@ class Note extends BaseModel {
     debug('**delete**')
     debug('id: ', id)
     // Delete all Note_Tag associated with the note
-    const { Note_Tag } = require('./Note_Tag')
     await Note_Tag.deleteNoteTagsOfNote(id)
 
     await NoteBody.softDeleteBodiesOfNote(id)

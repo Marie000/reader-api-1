@@ -22,6 +22,7 @@ const attributes = [
   'json',
   'preferences',
   'profilePicture',
+  'storageData',
   'username',
   'status',
   'role'
@@ -349,6 +350,7 @@ class Reader extends BaseModel {
       'profilePicture',
       'status',
       'role',
+      'storageData',
       'updated'
     ])
     json.shortId = urlToId(json.id)

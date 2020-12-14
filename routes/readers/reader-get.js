@@ -2,9 +2,10 @@ const express = require('express')
 const router = express.Router()
 const passport = require('passport')
 const { Reader } = require('../../models/Reader')
-const utils = require('../../utils/utils')
+const { urlToId, checkReader } = require('../../utils/utils')
 const boom = require('@hapi/boom')
 const debug = require('debug')('ink:routes:reader-get')
+const { getStorageData } = require('../../utils/getStorageData')
 
 module.exports = app => {
   /**
@@ -21,6 +22,11 @@ module.exports = app => {
    *           type: string
    *         required: true
    *         description: the id of the reader
+   *       - in: query
+   *         name: storageData
+   *         schema:
+   *           type: boolean
+   *         description: pass 'true' if you would like the storage data for the user. In bytes.
    *     security:
    *       - Bearer: []
    *     produces:
@@ -45,7 +51,7 @@ module.exports = app => {
     passport.authenticate('jwt', { session: false }),
     function (req, res, next) {
       Reader.byId(req.params.id)
-        .then(reader => {
+        .then(async reader => {
           debug('reader retrieved: ', reader)
           if (!reader || reader.deleted) {
             return next(
@@ -56,13 +62,17 @@ module.exports = app => {
                 }
               )
             )
-          } else if (!utils.checkReader(req, reader)) {
+          } else if (!checkReader(req, reader)) {
             return next(
               boom.forbidden(`Access to reader ${req.params.id} disallowed`, {
                 requestUrl: req.originalUrl
               })
             )
           } else {
+            if (req.query.storageData) {
+              reader.storageData = await getStorageData(urlToId(reader.id))
+            }
+
             res.setHeader('Content-Type', 'application/ld+json')
             res.end(JSON.stringify(reader.toJSON()))
           }
